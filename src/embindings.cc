@@ -65,6 +65,7 @@ EMSCRIPTEN_BINDINGS(vorojs) {
   emscripten::register_vector<float>("VectorFloat");
   emscripten::register_vector<int>("VectorInt");
   emscripten::register_vector<std::vector<int>>("VectorVectorInt");
+  emscripten::register_vector<std::vector<float>>("VectorVectorFloat");
   emscripten::register_vector<CellExport>("VectorCellExport");
   emscripten::class_<CellExport>("CellExport")
       .constructor<>()
