@@ -37,7 +37,7 @@ public:
     std::vector<CellExport> cells;
     int ijk,q;double *pp;
     c_loop_all vl(*this);
-    voronoicell c;
+    voronoicell_neighbor c;
     if(vl.start()) do if(compute_cell(c,vl)) {
       ijk=vl.ijk;q=vl.q;pp=p[ijk]+ps*q;
 
@@ -62,7 +62,10 @@ public:
         fvi += n_corners;
       }
 
-      cells.push_back({id[ijk][q], float(*pp), float(pp[1]), float(pp[2]), n_faces, verts, faces});
+      std::vector<int> neighbors;
+      c.neighbors(neighbors);
+
+      cells.push_back({id[ijk][q], float(*pp), float(pp[1]), float(pp[2]), n_faces, verts, faces, neighbors});
     } while(vl.inc());
 
     return cells;
@@ -83,7 +86,8 @@ EMSCRIPTEN_BINDINGS(vorojs) {
       .property("z", &CellExport::z)
       .property("nFaces", &CellExport::nFaces)
       .property("vertices", &CellExport::vertices)
-      .property("faces", &CellExport::faces);
+      .property("faces", &CellExport::faces)
+      .property("neighbors", &CellExport::neighbors);
   emscripten::class_<Container>("Container")
       .constructor<>()
       .constructor<float, float, float, float, float, float, int, int, int>()
@@ -150,6 +154,9 @@ int main() {
     for(auto f: c.faces) {
       for(size_t fvi = 1; fvi < f.size() - 1; ++fvi)
         std::cout << "f " << f[0] + 1 << " " << f[fvi] + 1 << " " << f[fvi + 1] + 1 << std::endl;
+    }
+    for(size_t ni = 0; ni < c.neighbors.size(); ni++) {
+      std::cout << "n " << c.neighbors[ni] << std::endl;
     }
     std::cout << "==============" << std::endl;
   }
