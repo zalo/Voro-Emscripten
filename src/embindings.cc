@@ -36,9 +36,9 @@ public:
     // con.print_custom("%i | %q | %s | %t | %p", "output.txt");
     std::vector<CellExport> cells;
     int ijk,q;double *pp;
-    c_loop_all vl(*this);
-    voronoicell_neighbor c;
-    if(vl.start()) do if(compute_cell(c,vl)) {
+    voro::c_loop_all vl(*this);
+    voro::voronoicell_neighbor c;
+    if(vl.start()) do if(con.compute_cell(c,vl)) {
       ijk=vl.ijk;q=vl.q;pp=p[ijk]+ps*q;
 
       std::vector<float> verts(c.pts, c.pts + 3 * c.p);
