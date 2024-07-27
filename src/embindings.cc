@@ -40,24 +40,24 @@ public:
     return cells;
   }
 
-  std::vector<CellExport> compute_cells_with_walls(std::vector<float> points, std::vector<std::vector<float>> cuts, bool convertToWorld = false) {
-    const int init_mem = 8;
+  //std::vector<CellExport> compute_cells_with_walls(std::vector<float> points, std::vector<std::vector<float>> cuts, bool convertToWorld = false) {
+  //  const int init_mem = 8;
 
-    voro::container con(x_min, x_max, y_min, y_max, z_min, z_max, n_x, n_y, n_z,
-                        false, false, false, init_mem);
+  //  voro::container con(x_min, x_max, y_min, y_max, z_min, z_max, n_x, n_y, n_z,
+  //                      false, false, false, init_mem);
 
-    for (int i = 0; i < int(points.size() / 3); ++i) {
-      con.put(i, points[i * 3 + 0], 
-                 points[i * 3 + 1], 
-                 points[i * 3 + 2]);
-    }
+  //  for (int i = 0; i < int(points.size() / 3); ++i) {
+  //    con.put(i, points[i * 3 + 0], 
+  //               points[i * 3 + 1], 
+  //               points[i * 3 + 2]);
+  //  }
 
-    // con.print_custom("%i | %q | %s | %t | %p", "output.txt");
-    std::vector<CellExport> cells;
-    con.compute_cut_cell_data(cuts, cells, convertToWorld);
+  //  // con.print_custom("%i | %q | %s | %t | %p", "output.txt");
+  //  std::vector<CellExport> cells;
+  //  con.compute_cut_cell_data(cuts, cells, convertToWorld);
 
-    return cells;
-  }
+  //  return cells;
+  //}
 };
 
 #ifdef EMSCRIPTEN
@@ -65,7 +65,7 @@ EMSCRIPTEN_BINDINGS(vorojs) {
   emscripten::register_vector<float>("VectorFloat");
   emscripten::register_vector<int>("VectorInt");
   emscripten::register_vector<std::vector<int>>("VectorVectorInt");
-  emscripten::register_vector<std::vector<float>>("VectorVectorFloat");
+  //emscripten::register_vector<std::vector<float>>("VectorVectorFloat");
   emscripten::register_vector<CellExport>("VectorCellExport");
   emscripten::class_<CellExport>("CellExport")
       .constructor<>()
@@ -89,8 +89,8 @@ EMSCRIPTEN_BINDINGS(vorojs) {
       .property("nX", &Container::n_x)
       .property("nY", &Container::n_y)
       .property("nZ", &Container::n_z)
-      .function("computeCells", &Container::compute_cells)
-      .function("computeCutCells", &Container::compute_cells_with_walls);
+      .function("computeCells", &Container::compute_cells);
+      //.function("computeCutCells", &Container::compute_cells_with_walls);
 }
 #endif
 

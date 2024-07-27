@@ -460,53 +460,53 @@ class container : public container_base, public radius_mono {
 				cells.push_back({id[ijk][q], float(*pp), float(pp[1]), float(pp[2]), n_faces, verts, faces, neighbors});
 			} while(vl.inc());
 		}
-		/** Computes the cell data, cut it according to many planes, and return it as a list of cells. */
-		void compute_cut_cell_data(std::vector<std::vector<float>>& cellCuts, std::vector<CellExport>& cells, bool convertToWorld) {
-			int ijk,q;double *pp;
-			c_loop_all vl(*this);
-			voronoicell_neighbor c;
-			if(vl.start()) do if(compute_cell(c,vl)) {
-				ijk=vl.ijk;q=vl.q;pp=p[ijk]+ps*q;
+		///** Computes the cell data, cut it according to many planes, and return it as a list of cells. */
+		//void compute_cut_cell_data(std::vector<std::vector<float>>& cellCuts, std::vector<CellExport>& cells, bool convertToWorld) {
+		//	int ijk,q;double *pp;
+		//	c_loop_all vl(*this);
+		//	voronoicell_neighbor c;
+		//	if(vl.start()) do if(compute_cell(c,vl)) {
+		//		ijk=vl.ijk;q=vl.q;pp=p[ijk]+ps*q;
 
-				bool cellDeleted = false;
-				auto cuts = cellCuts[id[ijk][q]];
-				for(size_t cutIdx = 0; cutIdx < cuts.size(); cutIdx += 3) {
-					cellDeleted = cellDeleted && c.plane(
-						(double)(cuts[cutIdx+0])-pp[0],
-						(double)(cuts[cutIdx+1])-pp[1],
-						(double)(cuts[cutIdx+2])-pp[2]); // Subtract the cut coordinates from the particle coordinates
-					if (cellDeleted) break;
-				}
+		//		bool cellDeleted = false;
+		//		auto cuts = cellCuts[id[ijk][q]];
+		//		for(size_t cutIdx = 0; cutIdx < cuts.size(); cutIdx += 3) {
+		//			cellDeleted = cellDeleted && c.plane(
+		//				(double)(cuts[cutIdx+0])-pp[0],
+		//				(double)(cuts[cutIdx+1])-pp[1],
+		//				(double)(cuts[cutIdx+2])-pp[2]); // Subtract the cut coordinates from the particle coordinates
+		//			if (cellDeleted) break;
+		//		}
 
-				if (!cellDeleted){
-					std::vector<float> verts(c.pts, c.pts + 3 * c.p);
-					std::transform(verts.begin(), verts.end(), verts.begin(), [](float& v){return v * 0.5;});
-					if(convertToWorld) {
-						for(size_t vi = 0; vi < verts.size(); vi += 3) {
-							verts[vi]+=float(*pp);verts[vi+1]+=float(pp[1]);verts[vi+2]+=float(pp[2]);
-						}
-					}
+		//		if (!cellDeleted){
+		//			std::vector<float> verts(c.pts, c.pts + 3 * c.p);
+		//			std::transform(verts.begin(), verts.end(), verts.begin(), [](float& v){return v * 0.5;});
+		//			if(convertToWorld) {
+		//				for(size_t vi = 0; vi < verts.size(); vi += 3) {
+		//					verts[vi]+=float(*pp);verts[vi+1]+=float(pp[1]);verts[vi+2]+=float(pp[2]);
+		//				}
+		//			}
 
-					std::vector<int> fv;
-					c.face_vertices(fv);
+		//			std::vector<int> fv;
+		//			c.face_vertices(fv);
 
-					const int n_faces = c.number_of_faces();
-					std::vector<std::vector<int>> faces(n_faces);
-					int fvi = 0;
-					for(size_t fi = 0; fi < n_faces; ++fi) {
-						// The first entry is the size of the face
-						const int n_corners = fv.at(fvi++);
-						faces[fi].insert(faces[fi].begin(), fv.begin() + fvi, fv.begin() + fvi + n_corners);
-						fvi += n_corners;
-					}
+		//			const int n_faces = c.number_of_faces();
+		//			std::vector<std::vector<int>> faces(n_faces);
+		//			int fvi = 0;
+		//			for(size_t fi = 0; fi < n_faces; ++fi) {
+		//				// The first entry is the size of the face
+		//				const int n_corners = fv.at(fvi++);
+		//				faces[fi].insert(faces[fi].begin(), fv.begin() + fvi, fv.begin() + fvi + n_corners);
+		//				fvi += n_corners;
+		//			}
 
-					std::vector<int> neighbors;
-					c.neighbors(neighbors);
+		//			std::vector<int> neighbors;
+		//			c.neighbors(neighbors);
 
-					cells.push_back({id[ijk][q], float(*pp), float(pp[1]), float(pp[2]), n_faces, verts, faces, neighbors});
-				}
-			} while(vl.inc());
-		}
+		//			cells.push_back({id[ijk][q], float(*pp), float(pp[1]), float(pp[2]), n_faces, verts, faces, neighbors});
+		//		}
+		//	} while(vl.inc());
+		//}
 		/** Computes the Voronoi cells and saves customized information
 		 * about them.
 		 * \param[in] vl the loop class to use.
