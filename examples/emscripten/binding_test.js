@@ -24,9 +24,10 @@ points.forEach((p) => {
   pointStorage.push_back(p[1]);
   pointStorage.push_back(p[2]);
 });
-const cells = container.computeCells(pointStorage, true);
 
-console.log("Calculated cells: ", { cells });
+// Test without radii (regular container)
+console.log("=== Testing without radii (regular container) ===");
+const cells = container.computeCells(pointStorage, true);
 console.log("Number of cells: ", cells.size());
 console.log("Faces of cell 0:");
 const c = cells.get(0);
@@ -37,3 +38,22 @@ for (let i = 0; i < c.faces.size(); ++i) {
     console.log(`Vertex ${f.get(j)}`);
   }
 }
+console.log("Neighbors of cell 0:");
+for (let i = 0; i < c.neighbors.size(); ++i) {
+  console.log(`Neighbor ${i}: ${c.neighbors.get(i)}`);
+}
+
+// Test with radii (container_poly)
+console.log("\n=== Testing with radii (container_poly) ===");
+const radii = new VoroRaw.VectorFloat();
+points.forEach(() => {
+  radii.push_back(0.5); // All particles have radius 0.5
+});
+const cellsWithRadii = container.computeCells(pointStorage, true, radii);
+console.log("Number of cells: ", cellsWithRadii.size());
+const cWithRadii = cellsWithRadii.get(0);
+console.log("Cell 0 neighbors:");
+for (let i = 0; i < cWithRadii.neighbors.size(); ++i) {
+  console.log(`Neighbor ${i}: ${cWithRadii.neighbors.get(i)}`);
+}
+console.log("Cell 0 has", cWithRadii.faces.size(), "faces");
