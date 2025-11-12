@@ -12,6 +12,7 @@
 
 #include <cstdio>
 #include <vector>
+#include <algorithm>
 
 #include "config.hh"
 #include "common.hh"
