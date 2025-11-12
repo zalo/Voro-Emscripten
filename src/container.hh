@@ -12,6 +12,7 @@
 
 #include <cstdio>
 #include <vector>
+#include <algorithm>
 
 #include "config.hh"
 #include "common.hh"
@@ -578,6 +579,40 @@ class container_poly : public container_base, public radius_poly {
 		}
 		void compute_all_cells();
 		double sum_cell_volumes();
+		void compute_cell_data(std::vector<CellExport>& cells, bool convertToWorld) {
+			int ijk,q;double *pp;
+			c_loop_all vl(*this);
+			voronoicell_neighbor c;
+			if(vl.start()) do if(compute_cell(c,vl)) {
+				ijk=vl.ijk;q=vl.q;pp=p[ijk]+ps*q;
+
+				std::vector<float> verts(c.pts, c.pts + 3 * c.p);
+				std::transform(verts.begin(), verts.end(), verts.begin(), [](float& v){return v * 0.5;});
+				if(convertToWorld) {
+					for(size_t vi = 0; vi < verts.size(); vi += 3) {
+						verts[vi]+=float(*pp);verts[vi+1]+=float(pp[1]);verts[vi+2]+=float(pp[2]);
+					}
+				}
+
+				std::vector<int> fv;
+				c.face_vertices(fv);
+
+				const int n_faces = c.number_of_faces();
+				std::vector<std::vector<int>> faces(n_faces);
+				int fvi = 0;
+				for(size_t fi = 0; fi < n_faces; ++fi) {
+					// The first entry is the size of the face
+					const int n_corners = fv.at(fvi++);
+					faces[fi].insert(faces[fi].begin(), fv.begin() + fvi, fv.begin() + fvi + n_corners);
+					fvi += n_corners;
+				}
+
+				std::vector<int> neighbors;
+				c.neighbors(neighbors);
+
+				cells.push_back({id[ijk][q], float(*pp), float(pp[1]), float(pp[2]), n_faces, verts, faces, neighbors});
+			} while(vl.inc());
+		}
 		/** Dumps particle IDs, positions and radii to a file.
 		 * \param[in] vl the loop class to use.
 		 * \param[in] fp a file handle to write to. */

@@ -21,22 +21,38 @@ public:
       : x_min(x_min), x_max(x_max), y_min(y_min), y_max(y_max), z_min(z_min),
         z_max(z_max), n_x(n_x), n_y(n_y), n_z(n_z) {}
 
-  std::vector<CellExport> compute_cells(std::vector<float> points, bool convertToWorld = false) {
+  std::vector<CellExport> compute_cells(std::vector<float> points, bool convertToWorld = false, std::vector<float> radii = std::vector<float>()) {
     const int init_mem = 8;
 
-    voro::container con(x_min, x_max, y_min, y_max, z_min, z_max, n_x, n_y, n_z,
-                        false, false, false, init_mem);
+    // Use container_poly if radii are provided
+    if (!radii.empty()) {
+      voro::container_poly con(x_min, x_max, y_min, y_max, z_min, z_max, n_x, n_y, n_z,
+                               false, false, false, init_mem);
 
-    for (int i = 0; i < int(points.size() / 3); ++i) {
-      con.put(i, points[i * 3 + 0], points[i * 3 + 1],
-              points[i * 3 + 2]);
+      int num_particles = int(points.size() / 3);
+      for (int i = 0; i < num_particles; ++i) {
+        float radius = (i < int(radii.size())) ? radii[i] : 1.0f;
+        con.put(i, points[i * 3 + 0], points[i * 3 + 1],
+                points[i * 3 + 2], radius);
+      }
+
+      std::vector<CellExport> cells;
+      con.compute_cell_data(cells, convertToWorld);
+      return cells;
+    } else {
+      // Use regular container if no radii provided
+      voro::container con(x_min, x_max, y_min, y_max, z_min, z_max, n_x, n_y, n_z,
+                          false, false, false, init_mem);
+
+      for (int i = 0; i < int(points.size() / 3); ++i) {
+        con.put(i, points[i * 3 + 0], points[i * 3 + 1],
+                points[i * 3 + 2]);
+      }
+
+      std::vector<CellExport> cells;
+      con.compute_cell_data(cells, convertToWorld);
+      return cells;
     }
-
-    // con.print_custom("%i | %q | %s | %t | %p", "output.txt");
-    std::vector<CellExport> cells;
-    con.compute_cell_data(cells, convertToWorld);
-
-    return cells;
   }
 };
 
@@ -112,18 +128,44 @@ int main() {
                             0.6252871464344901};
 
   Container c = Container(-5, 5, -5, 5, -5, 5, 2, 2, 2);
+  
+  // Test without radii
+  std::cout << "=== Testing without radii (regular container) ===" << std::endl;
   std::vector<CellExport> cells = c.compute_cells(points, true);
-  for(auto c: cells) {
-    std::cout << "# cell id " << c.particleID << std::endl;
-    std::cout << "# particle: " << c.x << " " << c.y << " " << c.z << std::endl;
-    for(size_t vi = 0; vi < c.vertices.size(); vi += 3) {
-      std::cout << "v " << c.vertices[vi] << " " << c.vertices[vi + 1] << " " << c.vertices[vi + 2] << std::endl;
+  std::cout << "Number of cells: " << cells.size() << std::endl;
+  if (cells.size() > 0) {
+    std::cout << "Cell 0 has " << cells[0].neighbors.size() << " neighbors: ";
+    for (auto n : cells[0].neighbors) {
+      std::cout << n << " ";
     }
-    for(auto f: c.faces) {
-      for(size_t fvi = 1; fvi < f.size() - 1; ++fvi)
-        std::cout << "f " << f[0] + 1 << " " << f[fvi] + 1 << " " << f[fvi + 1] + 1 << std::endl;
+    std::cout << std::endl;
+  }
+
+  // Test with radii
+  std::cout << "\n=== Testing with radii (container_poly) ===" << std::endl;
+  std::vector<float> radii(points.size() / 3, 0.5f);  // All particles have radius 0.5
+  std::vector<CellExport> cells_poly = c.compute_cells(points, true, radii);
+  std::cout << "Number of cells: " << cells_poly.size() << std::endl;
+  if (cells_poly.size() > 0) {
+    std::cout << "Cell 0 has " << cells_poly[0].neighbors.size() << " neighbors: ";
+    for (auto n : cells_poly[0].neighbors) {
+      std::cout << n << " ";
     }
-    std::cout << "==============" << std::endl;
+    std::cout << std::endl;
+  }
+
+  // Print first cell details
+  std::cout << "\n=== First cell details (with radii) ===" << std::endl;
+  if (cells_poly.size() > 0) {
+    auto cell = cells_poly[0];
+    std::cout << "# cell id " << cell.particleID << std::endl;
+    std::cout << "# particle: " << cell.x << " " << cell.y << " " << cell.z << std::endl;
+    std::cout << "# neighbors: ";
+    for (auto n : cell.neighbors) {
+      std::cout << n << " ";
+    }
+    std::cout << std::endl;
+    std::cout << "# number of faces: " << cell.nFaces << std::endl;
   }
 
   return 0;
